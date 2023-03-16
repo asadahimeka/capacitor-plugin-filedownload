@@ -11,6 +11,7 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Environment;
 import android.util.Log;
 
 
@@ -77,14 +78,16 @@ public class FileDownloadPlugin extends Plugin {
         //移动网络情况下是否允许漫游
         request.setAllowedOverRoaming(false);
         //在通知栏中显示，默认就是显示的
-        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-        request.setTitle("文件下载器");
-        request.setDescription(fileName + "下载中...");
+        request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
+        request.setTitle(fileName);
+        request.setDescription(url);
         request.setVisibleInDownloadsUi(true);
 
         //设置下载的路径
         assert fileName != null;
-        File file = new File(mContext.getExternalFilesDir(""), fileName);
+        // File file = new File(mContext.getExternalFilesDir(""), fileName);
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "pixiv-viewer/" + fileName);
+
         request.setDestinationUri(Uri.fromFile(file));
         pathstr = file.getAbsolutePath();
 
