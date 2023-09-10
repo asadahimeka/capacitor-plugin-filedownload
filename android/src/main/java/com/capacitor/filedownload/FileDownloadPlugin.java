@@ -8,24 +8,31 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
+//import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Environment;
-import android.util.Log;
+//import android.util.Log;
 
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+//import androidx.core.app.ActivityCompat;
+//import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
+import com.getcapacitor.annotation.Permission;
 
-
-@CapacitorPlugin(name = "FileDownload")
+@CapacitorPlugin(name = "FileDownload", permissions = {
+    @Permission(
+        alias = "publicStorage",
+        strings = {
+            Manifest.permission.READ_EXTERNAL_STORAGE,
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        }
+    )
+})
 public class FileDownloadPlugin extends Plugin {
 
     private FileDownload implementation = new FileDownload();
@@ -43,30 +50,30 @@ public class FileDownloadPlugin extends Plugin {
     public void download(PluginCall call) {
         _call = call;
         mContext = getContext();
-        requestPermissions();
+//        requestPermissions();
         downloadFile(call);
     }
 
      //获取权限
-    private void requestPermissions() {
-        int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
-        if (ContextCompat.checkSelfPermission(mContext,
-                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            //没有授权，编写申请权限代码
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-        } else {
-            Log.d("", "requestMyPermissions: 有写SD权限");
-        }
-        if (ContextCompat.checkSelfPermission(mContext,
-                Manifest.permission.READ_EXTERNAL_STORAGE)
-                != PackageManager.PERMISSION_GRANTED) {
-            //没有授权，编写申请权限代码
-            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-        } else {
-            Log.d("", "requestMyPermissions: 有读SD权限");
-        }
-    }
+//    private void requestPermissions() {
+//        int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
+//        if (ContextCompat.checkSelfPermission(mContext,
+//                Manifest.permission.WRITE_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            //没有授权，编写申请权限代码
+//            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+//        } else {
+//            Log.d("", "requestMyPermissions: 有写SD权限");
+//        }
+//        if (ContextCompat.checkSelfPermission(mContext,
+//                Manifest.permission.READ_EXTERNAL_STORAGE)
+//                != PackageManager.PERMISSION_GRANTED) {
+//            //没有授权，编写申请权限代码
+//            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
+//        } else {
+//            Log.d("", "requestMyPermissions: 有读SD权限");
+//        }
+//    }
 
     //下载文件
     private void downloadFile(final PluginCall call) {
@@ -79,14 +86,15 @@ public class FileDownloadPlugin extends Plugin {
         request.setAllowedOverRoaming(false);
         //在通知栏中显示，默认就是显示的
         request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE_NOTIFY_COMPLETED);
-        request.setTitle(fileName);
+        assert fileName != null;
+        request.setTitle(fileName.substring(fileName.lastIndexOf("/") + 1));
         request.setDescription(url);
         request.setVisibleInDownloadsUi(true);
+        request.allowScanningByMediaScanner();
 
         //设置下载的路径
-        assert fileName != null;
         // File file = new File(mContext.getExternalFilesDir(""), fileName);
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "pixiv-viewer/" + fileName);
+        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), fileName);
 
         request.setDestinationUri(Uri.fromFile(file));
         pathstr = file.getAbsolutePath();
