@@ -1,7 +1,7 @@
 {
-  "name": "capacitor-plugin-filedownload",
-  "version": "1.0.4",
-  "description": "a file download plugin for capacitor3.0+",
+  "name": "@himeka/capacitor-plugin-filedownload",
+  "version": "1.0.5",
+  "description": "A file download plugin for capacitor3.0+",
   "main": "dist/plugin.cjs.js",
   "module": "dist/esm/index.js",
   "types": "dist/esm/index.d.ts",

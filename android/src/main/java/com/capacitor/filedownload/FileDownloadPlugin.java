@@ -1,6 +1,7 @@
 package com.capacitor.filedownload;
 
 import java.io.File;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.DownloadManager;
@@ -8,32 +9,35 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-//import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
-//import android.util.Log;
-
-//import androidx.core.app.ActivityCompat;
-//import androidx.core.content.ContextCompat;
 
 import com.getcapacitor.JSObject;
+import com.getcapacitor.Logger;
+import com.getcapacitor.PermissionState;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginCall;
 import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import com.getcapacitor.annotation.Permission;
+import com.getcapacitor.annotation.PermissionCallback;
 
 @CapacitorPlugin(name = "FileDownload", permissions = {
-    @Permission(
-        alias = "publicStorage",
-        strings = {
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        }
-    )
+        @Permission(
+                alias = "publicStorage",
+                strings = {
+                        Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE
+                }
+        )
 })
 public class FileDownloadPlugin extends Plugin {
+
+    static final String PUBLIC_STORAGE = "publicStorage";
+
+    private static final String PERMISSION_DENIED_ERROR = "Unable to do file operation, user denied permission request";
 
     private FileDownload implementation = new FileDownload();
 
@@ -48,37 +52,38 @@ public class FileDownloadPlugin extends Plugin {
 
     @PluginMethod
     public void download(PluginCall call) {
-        _call = call;
-        mContext = getContext();
-//        requestPermissions();
-        downloadFile(call);
+        try {
+            if (isStoragePermissionGranted()) {
+                _call = call;
+                mContext = getContext();
+                downloadFile(call);
+            } else {
+                requestAllPermissions(call, "permissionCallback");
+            }
+        } catch (Exception ex) {
+            call.reject("Error downloading file: " + ex.getLocalizedMessage(), ex);
+        }
     }
 
-     //获取权限
-//    private void requestPermissions() {
-//        int PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE = 10001;
-//        if (ContextCompat.checkSelfPermission(mContext,
-//                Manifest.permission.WRITE_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            //没有授权，编写申请权限代码
-//            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-//        } else {
-//            Log.d("", "requestMyPermissions: 有写SD权限");
-//        }
-//        if (ContextCompat.checkSelfPermission(mContext,
-//                Manifest.permission.READ_EXTERNAL_STORAGE)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            //没有授权，编写申请权限代码
-//            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSIONS_REQUEST_WRITE_EXTERNAL_STORAGE);
-//        } else {
-//            Log.d("", "requestMyPermissions: 有读SD权限");
-//        }
-//    }
+    private boolean isStoragePermissionGranted() {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.R || getPermissionState(PUBLIC_STORAGE) == PermissionState.GRANTED;
+    }
+
+    @PermissionCallback
+    private void permissionCallback(PluginCall call) {
+        if (!isStoragePermissionGranted()) {
+            Logger.debug(getLogTag(), "User denied storage permission");
+            call.reject(PERMISSION_DENIED_ERROR);
+            return;
+        }
+
+        download(call);
+    }
 
     //下载文件
     private void downloadFile(final PluginCall call) {
-        String url = call.getString("uri","");
-        String fileName = call.getString("fileName","");
+        String url = call.getString("uri", "");
+        String fileName = call.getString("fileName", "");
 
         //创建下载任务
         DownloadManager.Request request = new DownloadManager.Request(Uri.parse(url));

@@ -13,17 +13,17 @@
     <img src="https://img.shields.io/npm/dm/capacitor-plugin-filedownload.svg"/>
   </a>
 </p>
-a file download plugin for capacitor3.0+
+A file download plugin for capacitor3.0+
 
 ## Install
 
 ```bash
-npm install capacitor-plugin-filedownload
+npm install @himeka/capacitor-plugin-filedownload
 npx cap sync
 ```
 eg:
 ```ts
-import { FileDownload } from "capacitor-plugin-filedownload";
+import { FileDownload } from "@himeka/capacitor-plugin-filedownload";
 
 FileDownload.download({
   uri: "http://www.xxxxx.com/file/rvh.apk",
@@ -34,12 +34,16 @@ FileDownload.download({
   console.log(err);
 })
 
+/* Not implemented
+
 const eventListener = await FileDownload.addListener('downloadProgress', data =>{
   console.log(data.progress);
 })
 
 // remove eventListener
 eventListener.remove();
+
+*/
 ...
 ```
 if you wish to open the file, you can install this plugin:
